@@ -1,0 +1,66 @@
+### SIGNUP USER
+POST http://localhost:2026/auth/signup
+Content-Type: application/json
+
+{
+  "fullname": "Lenin M",
+  "username": "Leninmurugesan",
+  "password": "lenin1801",
+  "role": "user"
+}
+
+### SIGNUP ADMIN
+POST http://localhost:2026/auth/signup
+Content-Type: application/json
+
+{
+  "fullname": "Devapasath K",
+  "username": "devaprasathdev",
+  "password": "Hostin001",
+  "role": "admin",
+  "adminSecret": "adminsecretkey001"
+}
+
+### LOGIN
+POST http://localhost:2026/auth/signin
+Content-Type: application/json
+
+{
+  "username": "devaprasathdev",
+  "password": "Hostin001"
+}
+
+### login
+POST http://localhost:2026/auth/signin
+Content-Type: application/json
+
+{
+  "username": "Leninmurugesan",
+  "password": "lenin1801"
+}
+
+### CREATE ITEM (ADMIN)
+POST http://localhost:2026/db/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYyM2RjM2I3MmJiMDg3YmI2ZDIiLCJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6ImRldmFwcmFzYXRoZGV2IiwiaWF0IjoxNzY3ODU4MDM4LCJleHAiOjE3Njc4NjE2Mzh9.AXhnxd5efSPO3qSYClWi6A7Uttn0WLqbZdKgdF-KdEI
+Content-Type: application/json
+
+{
+  "id":"item_L001",
+  "name":"HP laptop",
+  "category":"Electronics",
+  "pricePerMonth":5000,
+  "deposit":500,
+  "description":"A high performance laptop suitable for all your computing needs.",
+  "images":["https://example.com/image.jpg"],
+  "availability":true,
+  "city":"Chennai",
+  "condition":"new"
+}
+
+### GET ITEMS
+GET http://localhost:2026/db/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYxOWRjM2I3MmJiMDg3YmI2Y2YiLCJyb2xlIjoidXNlciIsInVzZXJuYW1lIjoiTGVuaW5tdXJ1Z2VzYW4iLCJpYXQiOjE3Njc4NTk1MTEsImV4cCI6MTc2Nzg2MzExMX0.0PaStHEeFXO5Dl5QnbMfCtz_ne-FA0JnSM-ejdKmk2Q
+
+### DELETE ITEM BY CUSTOM ID
+DELETE http://localhost:2026/db/item_P002
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYxOWRjM2I3MmJiMDg3YmI2Y2YiLCJyb2xlIjoidXNlciIsInVzZXJuYW1lIjoiTGVuaW5tdXJ1Z2VzYW4iLCJpYXQiOjE3Njc4NTk1MTEsImV4cCI6MTc2Nzg2MzExMX0.0PaStHEeFXO5Dl5QnbMfCtz_ne-FA0JnSM-ejdKmk2Q
