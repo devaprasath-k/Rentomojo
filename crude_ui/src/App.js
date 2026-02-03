@@ -19,11 +19,16 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  // ✅ FIX: Destructure filter values to avoid object dependency
+  const { city, category, search, sort } = filters;
+
   // Fetch items from backend
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await itemsAPI.getItems(filters);
+      // Reconstruct filters object inside the function
+      const filterParams = { city, category, search, sort };
+      const data = await itemsAPI.getItems(filterParams);
       setItems(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching items:", err);
@@ -31,14 +36,14 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [city, category, search, sort]); // ✅ Only depend on primitive values
 
   // Fetch items on user login or filters change (debounced)
   useEffect(() => {
     if (!user) return;
     const timer = setTimeout(() => fetchItems(), 300);
     return () => clearTimeout(timer);
-  }, [user, filters, fetchItems]);
+  }, [user, fetchItems]); // ✅ fetchItems is now stable
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -80,6 +85,7 @@ export default function App() {
             items={items}
             isAdmin={user?.role === "admin"}
             onItemsChange={setItems}
+            filters={filters}
           />
         )}
       </main>

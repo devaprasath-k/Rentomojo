@@ -4,69 +4,98 @@ import EditItemModal from "./EditItemModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { itemsAPI } from "../services/api";
 
-export default function ItemList({ items = [], isAdmin = false, onItemsChange, filters = {}, loading }) {
+export default function ItemList({
+  items = [],
+  isAdmin = false,
+  isVendor = false,
+  onItemsChange,
+  filters = {},
+  loading,
+}) {
+  const [localItems, setLocalItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
-  const [filteredItems, setFilteredItems] = useState([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [justCreatedId, setJustCreatedId] = useState(null);
+
+  // Debug: Log role props
+  console.log("🔍 ItemList props: isAdmin=", isAdmin, "isVendor=", isVendor);
+
+  // Keep localItems in sync with parent items
+  useEffect(() => {
+    setLocalItems(Array.isArray(items) ? items : []);
+  }, [items]);
+
+  const { city = "", category = "", search = "", sort = "", availability = "", subBranch = "" } = filters || {};
 
   // ----------------- Filter & Sort Items -----------------
   useEffect(() => {
-    let temp = [...items];
+    let temp = localItems.filter(item => item != null);
 
-    // Filter by city
-    if (filters.city) {
-      temp = temp.filter((item) => item.city === filters.city);
+    if (city) {
+      temp = temp.filter((item) => item?.city === city);
     }
 
-    // Filter by category
-    if (filters.category) {
-      temp = temp.filter((item) => item.category === filters.category);
+    if (subBranch) {
+      temp = temp.filter((item) => item?.subBranch === subBranch);
     }
 
-    // Filter by search term
-    if (filters.search) {
-      const term = filters.search.toLowerCase();
+    if (category) {
+      temp = temp.filter((item) => item?.category === category);
+    }
+
+    if (search) {
+      const term = search.toLowerCase();
       temp = temp.filter(
         (item) =>
-          item.name.toLowerCase().includes(term) ||
-          item.description.toLowerCase().includes(term)
+          item?.name?.toLowerCase().includes(term) ||
+          item?.description?.toLowerCase().includes(term)
       );
     }
 
-    // Sorting
-    if (filters.sort) {
-      switch (filters.sort) {
+    if (availability !== "") {
+      const isAvailable = availability === "true" || availability === true;
+      temp = temp.filter((item) => item?.availability === isAvailable);
+    }
+
+    if (sort) {
+      switch (sort) {
         case "price-asc":
-          temp.sort((a, b) => a.pricePerMonth - b.pricePerMonth);
+          temp.sort((a, b) => (a?.pricePerMonth || 0) - (b?.pricePerMonth || 0));
           break;
         case "price-desc":
-          temp.sort((a, b) => b.pricePerMonth - a.pricePerMonth);
+          temp.sort((a, b) => (b?.pricePerMonth || 0) - (a?.pricePerMonth || 0));
           break;
         case "name":
-          temp.sort((a, b) => a.name.localeCompare(b.name));
+          temp.sort((a, b) => (a?.name || "").localeCompare(b?.name || ""));
           break;
         default:
           break;
       }
     }
 
-    setFilteredItems(temp);
-  }, [items, filters]);
+    setFilteredItems(temp.filter(item => item != null && item.id != null));
+  }, [localItems, city, category, search, sort, availability, subBranch]);
 
-  // ----------------- Add/Edit/Delete Modals -----------------
+  // ----------------- Modals -----------------
   const openAddModal = () => {
+    const defaultId = `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     setSelectedItem({
-      id: `item_${Date.now()}`,
+      id: defaultId,
       name: "",
       category: "",
-      pricePerMonth: 0,
-      deposit: 0,
+      pricePerMonth: "",
+      deposit: "",
       description: "",
       images: [],
       availability: true,
       city: "",
+      subBranch: "",
       condition: "new",
     });
     setIsAdding(true);
@@ -74,15 +103,27 @@ export default function ItemList({ items = [], isAdmin = false, onItemsChange, f
   };
 
   const openEditModal = (item) => {
+    console.log("Opening edit modal for:", item.name);
+    if (!item || (!item._id && !item.id)) {
+      alert("Cannot edit: Item data is missing!");
+      return;
+    }
     setSelectedItem(item);
     setIsAdding(false);
     setShowEdit(true);
   };
 
-  const openDeleteModal = (item) => {
-    setSelectedItem(item);
-    setShowDelete(true);
-  };
+ const openDeleteModal = (item) => {
+  if (!isAdmin) {
+    alert("❌ Vendors are not allowed to delete items");
+    return;
+  }
+
+  console.log("Opening delete modal for:", item.name);
+  setSelectedItem(item);
+  setShowDelete(true);
+};
+
 
   const closeAllModals = () => {
     setShowEdit(false);
@@ -92,86 +133,277 @@ export default function ItemList({ items = [], isAdmin = false, onItemsChange, f
   };
 
   // ----------------- Save Item -----------------
-  const handleSave = async (item) => {
+  const handleSave = async (itemData) => {
+    if (!itemData.name || !itemData.name.trim()) {
+      alert("Item name is required!");
+      return;
+    }
+    if (!itemData.category || !itemData.category.trim()) {
+      alert("Category is required!");
+      return;
+    }
+    if (!itemData.city || !itemData.city.trim()) {
+      alert("City is required!");
+      return;
+    }
+    if (!itemData.pricePerMonth || itemData.pricePerMonth <= 0) {
+      alert("Price per month must be greater than 0!");
+      return;
+    }
+
     try {
+      const cleanData = {
+        name: itemData.name.trim(),
+        category: itemData.category.trim(),
+        pricePerMonth: Number(itemData.pricePerMonth),
+        deposit: Number(itemData.deposit || 0),
+        city: itemData.city.trim(),
+        subBranch: itemData.subBranch?.trim() || "",
+        condition: itemData.condition || "new",
+        description: itemData.description?.trim() || "",
+        availability: Boolean(itemData.availability),
+        images: Array.isArray(itemData.images) ? itemData.images.filter(img => img && img.trim()) : []
+      };
+
       if (isAdding) {
-        const created = await itemsAPI.createItem(item);
-        onItemsChange([...items, created]);
-      } else {
-        const updated = await itemsAPI.updateItem(item.id, item);
-        onItemsChange(items.map((i) => (i.id === item.id ? updated : i)));
+        cleanData.id = itemData.id.trim();
       }
-      closeAllModals();
+
+      if (isAdding) {
+        const created = await itemsAPI.createItem(cleanData);
+        if (!created || !created.id) {
+          throw new Error("Backend did not return a valid item");
+        }
+        
+        closeAllModals();
+        setJustCreatedId(created.id);
+        setIsSyncing(true);
+        
+        alert(`✅ Item created: ${created.name}`);
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        try {
+          const freshData = await itemsAPI.getItems({});
+          onItemsChange(Array.isArray(freshData) ? freshData : []);
+        } catch (err) {
+          console.error("Refresh failed:", err);
+        } finally {
+          setIsSyncing(false);
+          setJustCreatedId(null);
+        }
+      } else {
+        const itemId = itemData._id || itemData.id;
+        
+        if (!itemId) {
+          alert("Cannot update: Item ID is missing!");
+          return;
+        }
+        
+        try {
+          const updated = await itemsAPI.updateItem(itemId, cleanData);
+          if (!updated) {
+            throw new Error("Backend did not return updated item");
+          }
+          
+          alert(`✅ Item updated: ${updated.name}`);
+          closeAllModals();
+          
+          setTimeout(async () => {
+            try {
+              const freshData = await itemsAPI.getItems({});
+              onItemsChange(Array.isArray(freshData) ? freshData : []);
+            } catch (err) {
+              console.error("Refresh failed:", err);
+            }
+          }, 500);
+          
+        } catch (updateError) {
+          console.error("❌ Update failed:", updateError);
+          if (updateError.response?.status === 404) {
+            alert(`Item not found in database.\n\nTry clicking 🔄 Sync button.`);
+            closeAllModals();
+            return;
+          }
+          throw updateError;
+        }
+      }
     } catch (err) {
-      console.error("Failed to save item", err);
-      alert("Item could not be saved!");
+      console.error("Failed to save item:", err);
+      
+      let errorMessage = "Item could not be saved!";
+      
+      if (err.response) {
+        if (err.response.status === 404) {
+          errorMessage = `Item not found (404)`;
+        } else {
+          errorMessage = err.response.data?.message || 
+                        err.response.data?.error ||
+                        `Error ${err.response.status}: ${err.response.statusText}`;
+        }
+      } else if (err.request) {
+        errorMessage = "Network error: Could not reach the server.";
+      } else {
+        errorMessage = err.message || "An unexpected error occurred.";
+      }
+      
+      alert(errorMessage);
     }
   };
 
   // ----------------- Delete Item -----------------
-  const handleConfirmDelete = async () => {
-    if (!selectedItem) return;
+  const handleConfirmDelete = async (itemId) => {
+    if (!itemId) return;
+    
     try {
-      await itemsAPI.deleteItem(selectedItem.id);
-      onItemsChange(items.filter((i) => i.id !== selectedItem.id));
+      await itemsAPI.deleteItem(itemId);
+      onItemsChange(items.filter((i) => i?.id !== itemId));
+      alert("Item deleted successfully!");
       closeAllModals();
     } catch (err) {
       console.error("Failed to delete item", err);
-      alert("Item could not be deleted!");
+      
+      let errorMessage = "Item could not be deleted!";
+      
+      if (err.response) {
+        errorMessage = err.response.data?.message || 
+                      `Error: ${err.response.status} - ${err.response.statusText}`;
+      } else if (err.request) {
+        errorMessage = "Network error: Could not reach the server.";
+      } else {
+        errorMessage = err.message || "An unexpected error occurred.";
+      }
+      
+      alert(errorMessage);
     }
   };
 
   // ----------------- Render -----------------
   return (
     <>
-      {/* ---------------- Add Item Button ---------------- */}
+      {/* Admin Controls */}
       {isAdmin && (
-        <div className="text-end mt-3">
+        <div className="d-flex justify-content-between align-items-center mt-3 gap-2">
+          <div className="d-flex gap-2">
+            <button 
+              className="btn btn-outline-secondary"
+              onClick={async () => {
+                setIsSyncing(true);
+                try {
+                  const freshData = await itemsAPI.getItems({});
+                  onItemsChange(Array.isArray(freshData) ? freshData : []);
+                  alert(`✅ Synced! ${freshData?.length || 0} items`);
+                } catch (err) {
+                  console.error("Sync failed:", err);
+                  alert("❌ Sync failed");
+                } finally {
+                  setIsSyncing(false);
+                }
+              }}
+            >
+              🔄 Sync
+            </button>
+            
+            <button 
+              className="btn btn-outline-danger btn-sm"
+              onClick={async () => {
+                const confirm = window.confirm("Clean up phantom items?");
+                if (!confirm) return;
+                
+                setIsSyncing(true);
+                try {
+                  const backendItems = await itemsAPI.getItems({});
+                  const backendIds = new Set(backendItems.map(item => item.id));
+                  const currentItems = [...localItems];
+                  const phantomItems = currentItems.filter(item => !backendIds.has(item.id));
+                  
+                  if (phantomItems.length === 0) {
+                    alert("✅ No phantom items found!");
+                  } else {
+                    onItemsChange(backendItems);
+                    alert(`✅ Removed ${phantomItems.length} phantom item(s)`);
+                  }
+                } catch (err) {
+                  console.error("Cleanup failed:", err);
+                  alert("❌ Cleanup failed");
+                } finally {
+                  setIsSyncing(false);
+                }
+              }}
+              title="Remove items that don't exist in backend"
+            >
+              🧹 Clean Up
+            </button>
+          </div>
+          
           <button className="btn btn-primary" onClick={openAddModal}>
-            Add Item
+            + Add Item
           </button>
         </div>
       )}
 
-      {/* ---------------- Loading ---------------- */}
-      {loading && (
+      {/* Vendor Badge */}
+      {isVendor && !isAdmin && (
+        <div className="alert alert-info mt-3">
+          <strong>🏪 Vendor Mode:</strong> You can edit items but cannot create or delete them.
+        </div>
+      )}
+
+      {/* Loading */}
+      {(loading || isSyncing) && (
         <div className="text-center my-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">{isSyncing ? "Syncing..." : "Loading..."}</span>
           </div>
+          {isSyncing && <p className="mt-2 text-muted">Syncing with backend...</p>}
         </div>
       )}
 
-      {/* ---------------- No Items Found ---------------- */}
-      {!loading && filteredItems.length === 0 && (
+      {/* Empty States */}
+      {!loading && !isSyncing && localItems.length === 0 && !showEdit && (
         <div className="text-center mt-5 text-body-secondary">
-          <p>No items found</p>
+          <p>No items available</p>
         </div>
       )}
 
-      {/* ---------------- Items Grid ---------------- */}
-      {!loading && filteredItems.length > 0 && (
+      {!loading && !isSyncing && localItems.length > 0 && filteredItems.length === 0 && !showEdit && (
+        <div className="text-center mt-5 text-body-secondary">
+          <p>No items match your filters</p>
+        </div>
+      )}
+
+      {/* Items Grid */}
+      {!loading && !isSyncing && filteredItems.length > 0 && (
         <div className="row g-4 mt-2">
           {filteredItems.map((item) => (
-            <div key={item.id} className="col-12 col-sm-6 col-lg-4">
-              <ItemCard
-                item={item}
-                isAdmin={isAdmin}
-                onEdit={() => openEditModal(item)}
-                onDelete={() => openDeleteModal(item)}
-              />
-            </div>
+            item && (item._id || item.id) ? (
+              <div key={item._id || item.id} className="col-12 col-sm-6 col-lg-4">
+                <ItemCard
+                  item={item}
+                  isAdmin={isAdmin}
+                  isVendor={isVendor}
+                  onEdit={() => openEditModal(item)}
+                  onDelete={() => openDeleteModal(item)}
+                  showSyncWarning={false}
+                  isLoading={justCreatedId === item.id || justCreatedId === item._id}
+                />
+              </div>
+            ) : null
           ))}
         </div>
       )}
 
-      {/* ---------------- Modals ---------------- */}
-      <EditItemModal
-        show={showEdit}
-        item={selectedItem}
-        onSave={handleSave}
-        onClose={closeAllModals}
-      />
+      {/* Modals */}
+    <EditItemModal
+  show={showEdit}
+  item={selectedItem}
+  isAdding={isAdding}
+  isVendor={isVendor}   // ✅ ADD THIS
+  onSave={handleSave}
+  onClose={closeAllModals}
+/>
+
+
 
       <DeleteConfirmModal
         show={showDelete}
