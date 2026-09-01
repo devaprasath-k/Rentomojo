@@ -10,12 +10,12 @@ export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
 
-  const [isDark, setIsDark] = useState(
+  const [isDark, setIsDark] = useState( 
     localStorage.getItem("theme") === "dark"
   );
 
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:2026";
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
   useEffect(() => {
     document.documentElement.setAttribute(
@@ -61,6 +61,7 @@ export default function Login({ onLogin }) {
       const role = data.role || data.data?.role;
       const usernameResp = data.username || data.data?.username;
 
+ 
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
       localStorage.setItem("username", usernameResp);

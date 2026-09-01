@@ -13,7 +13,7 @@ export default function ItemCard({
   const condition = CONDITIONS.find((c) => c.value === item.condition) || {};
 
   // Debug: Always log to help troubleshoot
-  console.log(`🔍 ItemCard "${item.name}": isAdmin=${isAdmin}, isVendor=${isVendor}`);
+
 
   // Determine if we should show any action buttons
  
@@ -84,7 +84,7 @@ export default function ItemCard({
         </div>
 
         {/* Deposit (Admin only) */}
-        {isAdmin && item.deposit > 0 && (
+        {(isAdmin || isVendor) && item.deposit > 0 && (
           <small className="text-body-secondary d-block mb-1">
             💰 Deposit: ₹{item.deposit}
           </small>
@@ -95,12 +95,12 @@ export default function ItemCard({
           📍 {item.city}{item.subBranch ? `, ${item.subBranch}` : ''}
         </small>
 
-        {/* Item ID (for debugging - Admin only) */}
+        {/* Item ID (for debugging - Admin only)
         {isAdmin && (
           <small className="text-muted mb-2" style={{ fontSize: "0.7rem" }}>
             ID: {item.id}
           </small>
-        )}
+        )} */}
 
         {/* ACTION BUTTONS */}
         {/* ACTION BUTTONS */}

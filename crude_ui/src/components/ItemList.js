@@ -23,7 +23,7 @@ export default function ItemList({
   const [justCreatedId, setJustCreatedId] = useState(null);
 
   // Debug: Log role props
-  console.log("🔍 ItemList props: isAdmin=", isAdmin, "isVendor=", isVendor);
+
 
   // Keep localItems in sync with parent items
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function ItemList({
 
  const openDeleteModal = (item) => {
   if (!isAdmin) {
-    alert("❌ Vendors are not allowed to delete items");
+    alert("❌ Vendor are not allowed to delete items");
     return;
   }
 
@@ -193,7 +193,7 @@ export default function ItemList({
           setJustCreatedId(null);
         }
       } else {
-        const itemId = itemData._id || itemData.id;
+        const itemId = itemData.id || itemData._id;
         
         if (!itemId) {
           alert("Cannot update: Item ID is missing!");
@@ -343,11 +343,7 @@ export default function ItemList({
       )}
 
       {/* Vendor Badge */}
-      {isVendor && !isAdmin && (
-        <div className="alert alert-info mt-3">
-          <strong>🏪 Vendor Mode:</strong> You can edit items but cannot create or delete them.
-        </div>
-      )}
+     
 
       {/* Loading */}
       {(loading || isSyncing) && (

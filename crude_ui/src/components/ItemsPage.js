@@ -51,6 +51,7 @@ export default function ItemsPage({ user }) {
           <ItemList
             items={items}
             isAdmin={user?.role === "admin"}
+            isVendor={user?.role === "vendors"}
             onItemsChange={setItems}
             loading={loading}
           />

@@ -41,7 +41,7 @@ export default function EditItemModal({ show, item, onSave, onClose, isVendor = 
         setForm(prev => ({ ...prev, subBranch: "" }));
       }
     }
-  }, [form.city]);
+  }, [form.subBranch,form.city]);
 
   if (!show) return null;
 
@@ -258,7 +258,7 @@ export default function EditItemModal({ show, item, onSave, onClose, isVendor = 
                 </label>
               </div>
 
-              {/* VENDOR ID (read-only for vendors, hidden for non-vendors) */}
+              {/* VENDOR ID (read-only for vendor, hidden for non-vendor) */}
               {isVendor && form.vendorId && (
                 <div className="mb-3">
                   <label className="form-label">Vendor ID</label>

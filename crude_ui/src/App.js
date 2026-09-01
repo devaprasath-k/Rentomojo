@@ -84,6 +84,7 @@ export default function App() {
           <ItemList
             items={items}
             isAdmin={user?.role === "admin"}
+            isVendor={user?.role === "vendors"}
             onItemsChange={setItems}
             filters={filters}
           />
