@@ -15,6 +15,7 @@ const itemSchema = new mongoose.Schema({
   }],
   availability: { type: Boolean, default: true, index: true },
   city: { type: String, required: true, trim: true, index: true },
+  subBranch: { type: String, trim: true, default: "" },
   condition: { type: String, enum: ['new', 'good', 'refurbished'], required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 });

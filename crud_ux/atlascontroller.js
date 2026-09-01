@@ -41,8 +41,8 @@ router.patch('/:id', tokenVerify, async (req, res) => {
     if (!item) return res.status(404).json({ error: 'Item not found' });
 
     // Only admin or creator can update
-    if (req.user.role !== 'admin' && item.createdBy.toString() !== req.user._id.toString())
-      return res.status(401).json({ error: 'Unauthorized' });
+    if (req.user.role !== 'admin' && req.user.role !== 'vendors' && item.createdBy.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'Unauthorized' });
 
     const updated = await db.updateRecord(req.params.id, req.body);
     res.json(updated);
@@ -59,7 +59,7 @@ router.delete('/:id', tokenVerify, async (req, res) => {
 
     // Only admin or creator can delete
     if (req.user.role !== 'admin' && item.createdBy.toString() !== req.user._id.toString())
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(403).json({ error: 'Unauthorized' });
 
     await db.deleteRecord(req.params.id);
     res.json({ message: 'Item deleted successfully' });

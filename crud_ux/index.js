@@ -8,7 +8,7 @@ const cors = require('cors');
 app.use(express.json());
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-const port = process.env.PORT || 2026;
+const port = process.env.PORT || 4000;
 
 (async () => {
   await communicate(); // DB connect

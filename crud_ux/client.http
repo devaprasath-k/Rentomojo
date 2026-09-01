@@ -1,5 +1,5 @@
 ### SIGNUP USER
-POST http://localhost:2026/auth/signup
+POST http://localhost:4000/auth/signup
 Content-Type: application/json
 
 {
@@ -10,7 +10,7 @@ Content-Type: application/json
 }
 
 ### SIGNUP ADMIN
-POST http://localhost:2026/auth/signup
+POST http://localhost:4000/auth/signup
 Content-Type: application/json
 
 {
@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 ### LOGIN
-POST http://localhost:2026/auth/signin
+POST http://localhost:4000/auth/signin
 Content-Type: application/json
 
 {
@@ -31,7 +31,7 @@ Content-Type: application/json
 }
 
 ### login
-POST http://localhost:2026/auth/signin
+POST http://localhost:4000/auth/signin
 Content-Type: application/json
 
 {
@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ### CREATE ITEM (ADMIN)
-POST http://localhost:2026/db/
+POST http://localhost:4000/db/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYyM2RjM2I3MmJiMDg3YmI2ZDIiLCJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6ImRldmFwcmFzYXRoZGV2IiwiaWF0IjoxNzY3ODU4MDM4LCJleHAiOjE3Njc4NjE2Mzh9.AXhnxd5efSPO3qSYClWi6A7Uttn0WLqbZdKgdF-KdEI
 Content-Type: application/json
 
@@ -51,16 +51,38 @@ Content-Type: application/json
   "pricePerMonth":5000,
   "deposit":500,
   "description":"A high performance laptop suitable for all your computing needs.",
-  "images":["https://example.com/image.jpg"],
+  "images":["https://th.bing.com/th/id/OIP.LYPINLY-AlXKtxzSSjIUTQHaHa?w=193&h=194&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3"],
   "availability":true,
   "city":"Chennai",
   "condition":"new"
 }
 
 ### GET ITEMS
-GET http://localhost:2026/db/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYxOWRjM2I3MmJiMDg3YmI2Y2YiLCJyb2xlIjoidXNlciIsInVzZXJuYW1lIjoiTGVuaW5tdXJ1Z2VzYW4iLCJpYXQiOjE3Njc4NTk1MTEsImV4cCI6MTc2Nzg2MzExMX0.0PaStHEeFXO5Dl5QnbMfCtz_ne-FA0JnSM-ejdKmk2Q
+GET http://localhost:4000/db/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYyM2RjM2I3MmJiMDg3YmI2ZDIiLCJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6ImRldmFwcmFzYXRoZGV2IiwiaWF0IjoxNzY5MTU4MzAxLCJleHAiOjE3NjkxNjE5MDF9.2y4a8AfDiv8ChOqtzn7iZ3hpH7vmKjOyJ5szhdlwqBc
 
 ### DELETE ITEM BY CUSTOM ID
-DELETE http://localhost:2026/db/item_P002
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYxOWRjM2I3MmJiMDg3YmI2Y2YiLCJyb2xlIjoidXNlciIsInVzZXJuYW1lIjoiTGVuaW5tdXJ1Z2VzYW4iLCJpYXQiOjE3Njc4NTk1MTEsImV4cCI6MTc2Nzg2MzExMX0.0PaStHEeFXO5Dl5QnbMfCtz_ne-FA0JnSM-ejdKmk2Q
+DELETE http://localhost:4000/db/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYyM2RjM2I3MmJiMDg3YmI2ZDIiLCJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6ImRldmFwcmFzYXRoZGV2IiwiaWF0IjoxNzY5MTU0NTE5LCJleHAiOjE3NjkxNTgxMTl9.-vBR7NAvcxG_0tWUoJ7w8zIdxkSSycr8amBLA3nH4Lo
+
+###
+PATCH http://localhost:4000/db/item_B001
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTVmNWYyM2RjM2I3MmJiMDg3YmI2ZDIiLCJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6ImRldmFwcmFzYXRoZGV2IiwiaWF0IjoxNzY5MTU0NTE5LCJleHAiOjE3NjkxNTgxMTl9.-vBR7NAvcxG_0tWUoJ7w8zIdxkSSycr8amBLA3nH4Lo
+Content-Type: application/json
+
+{
+"pricePerMonth":100,
+"deposit":50
+}
+
+### vendor
+POST http://localhost:4000/auth/signup
+Content-Type: application/json
+
+{
+  "fullname": "Kathirvel K",
+  "username": "kathirvelkathir",
+  "password": "Boost001",
+  "role": "vendors",
+  "adminSecret": "adminsecretkey001"
+}
